@@ -20,7 +20,7 @@ from reportlab.pdfbase.ttfonts import TTFont
 st.set_page_config(page_title="臺北馬拉松賽事爬蟲", layout="wide")
 
 
-# 1. 取得檔案所在目錄，再拼出 MSJH.TTC 的路徑
+# 1. 取得檔案所在目錄，再拼 MSJH.TTC 的路徑
 FONT_PATH = os.path.join(os.path.dirname(__file__), "MSJH.TTC")
 
 # 2. 嘗試註冊字型──若找不到檔案或發生其他錯誤，就用 warning 提示
