@@ -1,0 +1,15 @@
+# Python 虛擬環境
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# macOS 隱藏檔
+.DS_Store
+
+# Windows 暫存檔
+Thumbs.db
+
+# Jupyter Notebook 檔案
+.ipynb_checkpoints/
