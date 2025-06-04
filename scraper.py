@@ -20,17 +20,18 @@ from reportlab.pdfbase.ttfonts import TTFont
 st.set_page_config(page_title="臺北馬拉松賽事爬蟲", layout="wide")
 
 
-# 1. 取得檔案所在目錄，再拼 MSJH.TTC 的路徑
+# 1. 取得檔案所在目錄，再拼出 MSJH.TTC 的路徑
 FONT_PATH = os.path.join(os.path.dirname(__file__), "MSJH.TTC")
 
 # 2. 嘗試註冊字型──若找不到檔案或發生其他錯誤，就用 warning 提示
 try:
-    pdfmetrics.registerFont(TTFont("MSJH-Light", FONT_PATH))
-    pdfmetrics.registerFont(TTFont("MSJH-Bold", FONT_PATH))
+    pdfmetrics.registerFont(TTFont("MSJH-Regular", FONT_PATH, subfontIndex=0))
+    pdfmetrics.registerFont(TTFont("MSJH-Bold",    FONT_PATH, subfontIndex=1))
+
     pdfmetrics.registerFontFamily(
         "MSJH",
-        normal="MSJH-Light", bold="MSJH-Bold",
-        italic="MSJH-Light", boldItalic="MSJH-Bold"
+        normal="MSJH-Regular", bold="MSJH-Bold",
+        italic="MSJH-Regular", boldItalic="MSJH-Bold"
     )
 except Exception as e:
     st.warning(
@@ -338,73 +339,75 @@ if "df" in st.session_state and not st.session_state["df"].empty:
 
     st.subheader("📋 查詢結果")
     st.dataframe(display_df, use_container_width=True)
+    selected_loc = st.selectbox(
+        "🎯 選擇地點以預覽地圖",
+        options=list(location_to_embed.keys())
+    )
+
+    # 3.b 顯示地圖 iframe（寬度和高度可依需求調整）
+    if selected_loc:
+        embed_url = location_to_embed[selected_loc]
+        st.subheader("🗺️ 地圖預覽")
+        # st.components.v1.iframe 需要先 import：from streamlit import components
+        st.components.v1.iframe(
+            embed_url,
+            width=700,
+            height=400,
+            scrolling=False
+        )
 
     st.markdown("---")
-    # 4. 地點預覽：因為我們已經從 df_sorted 建了 location_to_embed，這裡改從映射取 url
-    st.subheader("🗺️ 地點預覽")
-    addr_list = display_df["地點"].unique().tolist()
-    sel_addr = st.selectbox("選擇地點", options=addr_list, key="addr_selector")
-    
-    # 從映射表取出對應的地圖嵌入 URL
-    embed_url = location_to_embed.get(sel_addr, "")
-    if embed_url:
-        st.components.v1.iframe(embed_url, width=700, height=450)
-    else:
-        st.warning("❌ 無法取得該地點的嵌入 URL。")
-
-    st.markdown("---")
+    # 4. 地點預覽之後
     st.subheader("📥 下載 PDF")
 
-    # 5. 以下處理 PDF 生成：data_for_pdf 只需考慮 display_df，已經不含「地點嵌入URL」
+    # 5. 建立 PDF 所需的資料
     headers = list(display_df.columns)
     data_for_pdf = []
+
+    # 動態產生「表頭樣式」：使用 base_font
+    header_font_size = 10  # 可以依需求再做動態調整，我先寫固定值
+    header_leading = header_font_size + 2
+
+    header_style = ParagraphStyle(
+        name="HeaderStyle",
+        fontName="MSJH-Regular",          # ← 用前面動態決定好的 base_font
+        fontSize=header_font_size,
+        leading=header_leading,
+        alignment=1,                 # 置中
+        textColor=colors.black,
+        backColor=colors.HexColor("#D3D3D3")
+    )
 
     # 5.a 處理表頭：純文字 + 灰底
     header_row = []
     for col in headers:
-        header_para = Paragraph(
-            col,  # 純文字
-            ParagraphStyle(
-                name="HeaderStyle",
-                fontName="MSJH-Regular",       # 使用微軟正黑體家族
-                fontSize=10,
-                leading=12,
-                alignment=1,           # 置中
-                textColor=colors.black,
-                backColor=colors.HexColor("#D3D3D3")
-            )
-        )
+        header_para = Paragraph(col, header_style)
         header_row.append(header_para)
     data_for_pdf.append(header_row)
 
-    # 5.b 處理表身：針對「賽事連結」與「地點連結」做超連結，其它純文字
+    # 5.b 處理表身：對「賽事連結」和「地點連結」做超連結，其他純文字
     for row in display_df.itertuples(index=False):
         row_cells = []
         for i, value in enumerate(row):
             col_name = headers[i]
-
             if col_name == "賽事連結":
-                url = value  # 這裡的 value 就是原始報名頁面 URL
+                url = value or ""
                 if url.strip():
-                    cell_para = Paragraph(
-                        f'<link href="{url}">連結</link>',
-                        chinese_style
-                    )
+                    # 用 chinese_style，裡面 fontName 已經是 base_font
+                    text = f'<link href="{url}">賽事連結</link>'
+                    cell_para = Paragraph(text, chinese_style)
                 else:
                     cell_para = Paragraph("", chinese_style)
 
             elif col_name == "地點連結":
-                url = value  # 這裡的 value 就是 Google Map 的 URL
+                url = value or ""
                 if url.strip():
-                    cell_para = Paragraph(
-                        f'<link href="{url}">地圖連結</link>',
-                        chinese_style
-                    )
+                    text = f'<link href="{url}">地圖連結</link>'
+                    cell_para = Paragraph(text, chinese_style)
                 else:
                     cell_para = Paragraph("", chinese_style)
 
             else:
-                # 其餘欄位都用純文字顯示
                 cell_para = Paragraph(str(value), chinese_style)
 
             row_cells.append(cell_para)
