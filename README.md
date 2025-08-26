@@ -161,19 +161,8 @@ docker run --rm -p 8501:8501 tpe-marathon-scraper
 
 ---
 
-## 📜 授權（License）
-
-建議使用 **MIT License**，你也可以依需求替換。請在根目錄加入 `LICENSE`。
-
----
-
 ## 🙏 致謝（Acknowledgements）
 
 * 臺北馬拉松賽事列表
 * Streamlit / ReportLab / BeautifulSoup / pandas
 
----
-
-## 🗓️ Changelog（可選）
-
-* 2025‑08‑26：初版 README 草稿。
