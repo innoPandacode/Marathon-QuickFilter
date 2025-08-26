@@ -15,6 +15,11 @@
 * 🈶 **中文字型**：預設使用 **微軟正黑體（MSJH.TTC）** 以避免 PDF 亂碼。
 * ⚠️ **錯誤處理**：偵測 ASP.NET PostBack 與網站改版情境，提供明確錯誤訊息。
 
+## 🌐 線上預覽（Demo）
+
+* 已部署至 Streamlit Cloud：[https://marathon-quickfilter.streamlit.app/](https://marathon-quickfilter.streamlit.app/)
+* 若顯示「需要喚醒」或載入較久，屬於冷啟動現象，**約 3 分鐘內**即可自動喚醒完成。
+
 ---
 
 ## 📦 安裝（Installation）
@@ -161,8 +166,11 @@ docker run --rm -p 8501:8501 tpe-marathon-scraper
 
 ---
 
+
 ## 🙏 致謝（Acknowledgements）
 
 * 臺北馬拉松賽事列表
 * Streamlit / ReportLab / BeautifulSoup / pandas
+
+---
 
